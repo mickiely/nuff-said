@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NUFF SAID — Magnetism Index</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8C96A;
+  --gold-dim: #8a6e2e;
+  --black: #0a0a0a;
+  --surface: #111111;
+  --surface-2: #181818;
+  --surface-3: #202020;
+  --border: rgba(201, 168, 76, 0.15);
+  --border-bright: rgba(201, 168, 76, 0.4);
+  --text: #e8e8e8;
+  --text-dim: #888;
+  --text-dimmer: #555;
+  --green: #4caf7d;
+  --red: #e05252;
+  --almost: #C9A84C;
+  --radius: 6px;
+}
+
+html, body {
+  background: var(--black);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Grain overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.4;
+}
+
+.app {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* ── HEADER ── */
+.brand {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.brand-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.brand-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(52px, 12vw, 80px);
+  letter-spacing: 0.04em;
+  color: var(--text);
+  line-height: 0.9;
+  margin-bottom: 4px;
+}
+
+.brand-rule {
+  width: 40px;
+  height: 1px;
+  background: var(--gold);
+  margin: 14px auto 12px;
+}
+
+.brand-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* ── CONTEXT PILLS ── */
+.context-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.pill {
+  padding: 7px 20px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pill:hover {
+  border-color: var(--border-bright);
+  color: var(--text);
+}
+
+.pill.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--black);
+  font-weight: 600;
+}
+
+/* ── UPLOAD AREA ── */
+.upload-area {
+  border: 1px dashed var(--border-bright);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-area:hover, .upload-area.drag-over {
+  border-color: var(--gold);
+  background: var(--surface-2);
+}
+
+.upload-area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.upload-icon {
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid var(--border-bright);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  color: var(--gold-dim);
+}
+
+.upload-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+.upload-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: var(--text-dimmer);
+}
+
+#fileInput { display: none; }
+
+/* ── PREVIEW ── */
+.preview-wrap {
+  display: none;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  position: relative;
+  margin-bottom: 0;
+}
+
+.preview-wrap img {
+  width: 100%;
+  max-height: 380px;
+  object-fit: cover;
+  display: block;
+}
+
+.preview-change {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 14px;
+  background: rgba(10,10,10,0.85);
+  border: 1px solid var(--border-bright);
+  border-radius: 100px;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+/* ── API KEY ── */
+.api-section {
+  margin-top: 20px;
+  margin-bottom: 4px;
+}
+
+.api-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.api-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.api-input:focus { border-color: var(--border-bright); }
+.api-input::placeholder { color: var(--text-dimmer); }
+
+/* ── BUTTON ── */
+.read-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--gold);
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.15em;
+  color: var(--black);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.read-btn:not(:disabled) {
+  animation: btnPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes btnPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+  50% { box-shadow: 0 0 18px 4px rgba(201,168,76,0.25); }
+}
+
+.read-btn:hover:not(:disabled) {
+  background: var(--gold-light);
+  transform: translateY(-1px);
+  animation: none;
+  box-shadow: 0 4px 24px rgba(201,168,76,0.3);
+}
+.read-btn:active:not(:disabled) { transform: translateY(0); box-shadow: none; }
+.read-btn:disabled { background: var(--surface-3); color: var(--text-dimmer); cursor: not-allowed; }
+
+/* ── LOADING ── */
+.loading-wrap {
+  display: none;
+  padding: 48px 0;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-step {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+/* ── RESULTS ── */
+.results-wrap {
+  display: none;
+  margin-top: 32px;
+  animation: fadeUp 0.5s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── PRIMARY VERDICT ── */
+.primary-verdict {
+  background: var(--surface);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.primary-verdict::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+.verdict-post-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.vp-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+}
+.verdict-rule { height: 1px; background: var(--border); margin-bottom: 20px; }
+.verdict-sentence {
+  font-size: 18px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+.verdict-score-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.score-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 80px;
+  line-height: 1;
+  color: var(--gold);
+  letter-spacing: -2px;
+}
+.score-denom {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: var(--text-dimmer);
+  letter-spacing: 0.05em;
+  align-self: flex-end;
+  padding-bottom: 6px;
+}
+.score-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+  align-self: flex-end;
+  padding-bottom: 10px;
+  padding-left: 4px;
+}
+.fix-inline {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.fix-arrow { color: var(--gold); font-size: 16px; font-weight: 600; flex-shrink: 0; margin-top: 1px; }
+
+.explain-btn {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 12px;
+}
+.explain-btn:hover { border-color: var(--border-bright); color: var(--text); }
+.explain-btn.open { color: var(--gold); border-color: var(--border-bright); }
+
+/* ── BREAKDOWN ── */
+.breakdown-wrap { display: none; animation: fadeUp 0.35s ease both; }
+
+/* Post verdict (legacy — unused now but kept safe) */
+.post-verdict {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+.post-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+}
+.post-answer {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 0.12em;
+}
+.post-answer.yes { color: var(--green); }
+.post-answer.no { color: var(--red); }
+.post-answer.almost { color: var(--almost); }
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+
+.post-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+}
+
+.post-answer {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.1em;
+}
+
+.post-answer.yes { color: var(--green); }
+.post-answer.no { color: var(--red); }
+.post-answer.almost { color: var(--almost); }
+
+/* Score hero */
+.score-hero {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 24px;
+  text-align: center;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.score-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 100%, rgba(201,168,76,0.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.score-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 96px;
+  line-height: 1;
+  color: var(--gold);
+  letter-spacing: -2px;
+  margin-bottom: 4px;
+}
+
+.score-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+  margin-bottom: 20px;
+}
+
+.verdict-text {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.5;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* Metrics */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.metric-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+  margin-bottom: 10px;
+}
+
+.metric-bar-track {
+  height: 3px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.metric-bar-fill {
+  height: 100%;
+  background: var(--gold);
+  border-radius: 2px;
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 0;
+}
+
+.metric-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: var(--text);
+  letter-spacing: 0.05em;
+}
+
+/* Works / Kills */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.col-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.col-card-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.col-card.works .col-card-title { color: var(--green); }
+.col-card.kills .col-card-title { color: var(--red); }
+
+.col-card ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+
+.col-card li {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.col-card li::before {
+  content: '•';
+  margin-top: 1px;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.col-card.works li::before { color: var(--green); }
+.col-card.kills li::before { color: var(--red); }
+
+/* The One Fix */
+.fix-card {
+  background: var(--surface);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 10px;
+}
+
+.fix-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: 10px;
+}
+
+.fix-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.fix-text::before {
+  content: '→ ';
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.impact-text {
+  margin-top: 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--gold);
+  padding: 8px 12px;
+  background: rgba(201,168,76,0.07);
+  border-radius: 4px;
+  border-left: 2px solid var(--gold);
+}
+
+/* Read again btn */
+.again-btn {
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px;
+  background: transparent;
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.again-btn:hover { background: rgba(201,168,76,0.07); border-color: var(--gold); }
+
+/* Error */
+.error-msg {
+  display: none;
+  margin-top: 16px;
+  padding: 14px 18px;
+  background: rgba(224,82,82,0.08);
+  border: 1px solid rgba(224,82,82,0.3);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--red);
+}
+
+/* Responsive */
+@media (max-width: 520px) {
+  .two-col, .metrics-grid { grid-template-columns: 1fr; }
+  .score-num { font-size: 72px; }
+  .brand-title { font-size: 52px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="brand">
+    <div class="brand-label">The Magnetism Index</div>
+    <div class="brand-title">NUFF SAID</div>
+    <div class="brand-rule"></div>
+    <div class="brand-sub">Photo-readiness, not a beauty pageant</div>
+  </header>
+
+  <!-- Context pills -->
+  <div class="context-row">
+    <button class="pill active" data-ctx="Dating">Dating</button>
+    <button class="pill" data-ctx="Professional">Professional</button>
+    <button class="pill" data-ctx="Social">Social</button>
+  </div>
+
+  <!-- Upload area -->
+  <div class="upload-area" id="uploadArea">
+    <input type="file" id="fileInput" accept="image/*">
+    <div class="upload-icon">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+    </div>
+    <div class="upload-title">Drop the photo. We'll do the rest.</div>
+    <div class="upload-hint">JPG · PNG · WEBP</div>
+  </div>
+
+  <!-- Preview -->
+  <div class="preview-wrap" id="previewWrap">
+    <img id="previewImg" src="" alt="Preview">
+    <button class="preview-change" id="changePhoto">CHANGE PHOTO</button>
+  </div>
+
+  <!-- API Key -->
+  <div class="api-section">
+    <label class="api-label" for="apiKeyInput">Anthropic API Key</label>
+    <input type="password" id="apiKeyInput" class="api-input" placeholder="sk-ant-...">
+  </div>
+
+  <!-- CTA -->
+  <button class="read-btn" id="readBtn" disabled>READ THE ROOM</button>
+
+  <!-- Error -->
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Loading -->
+  <div class="loading-wrap" id="loadingWrap">
+    <div class="loading-spinner"></div>
+    <div class="loading-step" id="loadingStep">reading the room...</div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-wrap" id="resultsWrap">
+
+    <!-- PRIMARY: instant verdict -->
+    <div class="primary-verdict">
+      <div class="verdict-post-row">
+        <span class="vp-label">Would you post this?</span>
+        <span class="post-answer" id="postAnswer">—</span>
+      </div>
+      <div class="verdict-rule"></div>
+      <div class="verdict-sentence" id="verdictText"></div>
+      <div class="verdict-score-row">
+        <span class="score-num" id="scoreNum">—</span>
+        <span class="score-denom">/100</span>
+        <span class="score-tag">Magnetism Index</span>
+      </div>
+      <div class="fix-inline">
+        <span class="fix-arrow">→</span>
+        <span id="fixText"></span>
+      </div>
+    </div>
+
+    <!-- SECONDARY: breakdown, hidden by default -->
+    <button class="explain-btn" id="explainBtn">Explain it</button>
+
+    <div class="breakdown-wrap" id="breakdownWrap">
+      <div class="metrics-grid" id="metricsGrid"></div>
+      <div class="two-col">
+        <div class="col-card works">
+          <div class="col-card-title">What works</div>
+          <ul id="worksList"></ul>
+        </div>
+        <div class="col-card kills">
+          <div class="col-card-title">What kills it</div>
+          <ul id="killsList"></ul>
+        </div>
+      </div>
+      <div class="fix-card">
+        <div class="fix-label">Predicted impact</div>
+        <div class="impact-text" id="impactText"></div>
+      </div>
+    </div>
+
+    <button class="again-btn" id="againBtn">READ AGAIN</button>
+
+  </div>
+
+</div>
+
+<script>
+const METRICS = ['Magnetism', 'Lighting', 'Eye Contact', 'Composition', 'Swipe Gravity'];
+
+const LOADING_STEPS = [
+  'reading the room...',
+  'measuring swipe gravity...',
+  'checking what the camera is doing to you...',
+  'rendering verdict...'
+];
+
+const CTX_PROMPTS = {
+  Dating: `CONTEXT: Dating profile — Hinge, Bumble, Tinder.
+The only question is: does this photo make someone stop and want to know more? Not "are they attractive" — does the PHOTO create a pull?
+Weight Swipe Gravity (50%) and Magnetism (30%) highest. Composition and lighting matter only in how they serve or sabotage presence.
+Tone for verdicts: warm but direct, like a mate who's genuinely rooting for you but won't lie. Conversational. Slightly playful. Never clinical.
+Verdict examples for this mode: "The vibe is there. The photo is burying it." / "You're giving 'I texted my ex' energy. Fix the background." / "Strong pull. Post it." / "This photo is a closed door. You are not."
+What works / kills: focus on eye contact, approachability, energy, background noise, whether the person reads as someone interesting vs. someone who owns a camera.`,
+
+  Professional: `CONTEXT: LinkedIn profile, bio headshot, speaker page, company website.
+The question is: does this person look like they've got it together — and would you trust them with something that matters?
+Weight Credibility (40%) and Composition (30%) highest. Lighting should do its job invisibly. Eye contact signals confidence or its absence.
+Tone for verdicts: precise, no softening, like a brand consultant billing by the hour. Zero patience for amateur hour. Respect for effort.
+Verdict examples for this mode: "Competent human, witness protection framing." / "You look like you're about to give a great talk. Post it." / "The background is doing more work than you. Swap it." / "Strong presence. The crop is what's getting fired."
+What works / kills: focus on whether the setting reads as intentional, whether confidence comes through, whether this could appear on a Forbes profile without embarrassment.`,
+
+  Social: `CONTEXT: Instagram, TikTok thumbnail, general social presence.
+The question is: does this stop the scroll in under half a second? Does it have a reason to exist, or is it just a photo?
+Weight Composition (40%) and Visual Impact (35%) highest. Lighting that flatters is table stakes — this mode rewards lighting that has a point of view.
+Tone for verdicts: fast, sharp, a little ruthless, like a creative director who's seen ten thousand bad shots today. Efficiency over kindness.
+Verdict examples for this mode: "Aesthetic locked. Post immediately." / "Nice moment, no image. Reshoot with intent." / "The photo is fine. Fine is a death sentence on a feed." / "This has a visual argument. Rare. Use it."
+What works / kills: focus on whether the image has a clear subject, whether the light source is readable, whether the composition would survive a 3:4 crop, and whether there's any energy or point of view.`
+};
+
+let selectedContext = 'Dating';
+let imageBase64 = null;
+let imageType = null;
+let loadingInterval = null;
+
+// Context pills
+document.querySelectorAll('.pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    selectedContext = p.dataset.ctx;
+  });
+});
+
+// Upload
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+const previewWrap = document.getElementById('previewWrap');
+const previewImg = document.getElementById('previewImg');
+const readBtn = document.getElementById('readBtn');
+const apiKeyInput = document.getElementById('apiKeyInput');
+
+uploadArea.addEventListener('click', () => fileInput.click());
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadArea.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadFile(file);
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) loadFile(fileInput.files[0]);
+});
+
+document.getElementById('changePhoto').addEventListener('click', () => {
+  previewWrap.style.display = 'none';
+  uploadArea.style.display = '';
+  imageBase64 = null;
+  updateBtn();
+});
+
+function loadFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const result = e.target.result;
+    previewImg.src = result;
+    imageBase64 = result.split(',')[1];
+    imageType = file.type;
+    uploadArea.style.display = 'none';
+    previewWrap.style.display = '';
+    updateBtn();
+  };
+  reader.readAsDataURL(file);
+}
+
+apiKeyInput.addEventListener('input', updateBtn);
+
+function updateBtn() {
+  readBtn.disabled = !(imageBase64 && apiKeyInput.value.trim().startsWith('sk-'));
+}
+
+readBtn.addEventListener('click', runAnalysis);
+
+// Explain it toggle
+document.getElementById('explainBtn').addEventListener('click', () => {
+  const btn = document.getElementById('explainBtn');
+  const breakdown = document.getElementById('breakdownWrap');
+  const isOpen = breakdown.style.display === 'block';
+  breakdown.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? 'Explain it' : 'Hide breakdown';
+  btn.classList.toggle('open', !isOpen);
+});
+
+document.getElementById('againBtn').addEventListener('click', () => {
+  document.getElementById('resultsWrap').style.display = 'none';
+  document.getElementById('breakdownWrap').style.display = 'none';
+  document.getElementById('explainBtn').textContent = 'Explain it';
+  document.getElementById('explainBtn').classList.remove('open');
+  readBtn.style.display = '';
+  readBtn.textContent = 'READ AGAIN';
+});
+
+function startLoading() {
+  document.getElementById('loadingWrap').style.display = 'block';
+  document.getElementById('resultsWrap').style.display = 'none';
+  document.getElementById('errorMsg').style.display = 'none';
+  readBtn.style.display = 'none';
+  let i = 0;
+  const el = document.getElementById('loadingStep');
+  el.textContent = LOADING_STEPS[0];
+  loadingInterval = setInterval(() => {
+    i = (i + 1) % LOADING_STEPS.length;
+    el.textContent = LOADING_STEPS[i];
+  }, 1800);
+}
+
+function stopLoading() {
+  clearInterval(loadingInterval);
+  document.getElementById('loadingWrap').style.display = 'none';
+}
+
+async function runAnalysis() {
+  const apiKey = apiKeyInput.value.trim();
+  startLoading();
+
+  const systemPrompt = `You are the Magnetism Index — a brutally honest mate who also happens to be a photo strategist, dating profile coach, and visual editor. You are not rating attractiveness. You are rating PHOTO READINESS. The photo is always on trial. The person is always redeemable.
+
+Your voice: sharp, funny, useful. Like a friend who won't lie to you but also wants you to win. Blunt without being cruel. Opinionated without being vague. You speak to the photo, not the person.
+
+${CTX_PROMPTS[selectedContext]}
+
+VERDICT BANK (use as tone reference, not verbatim):
+- "Good bones, bad lighting. The camera is doing you dirty."
+- "Strong eye contact. Slight hostage-note composition."
+- "You're not cooked — the photo is."
+- "This photo is auditioning for a missing persons flyer."
+- "Almost. Annoyingly almost."
+- "The vibe is right. The execution is a crime."
+- "Decent human energy. Catastrophic framing."
+
+NEVER say things like "great lighting" without being specific. NEVER say "try improving your lighting" — say WHAT lighting, WHY, and HOW.
+
+Respond ONLY with a valid JSON object. No preamble, no markdown, no backticks.
+
+{
+  "postVerdict": "YES" or "NO" or "ALMOST",
+  "magnetismScore": (integer 0-100, where 50=average, 70+=solid, 85+=exceptional),
+  "verdict": "(one sharp sentence — cheeky, specific, memorable)",
+  "metrics": [
+    { "name": "Magnetism", "score": (0-100) },
+    { "name": "Lighting", "score": (0-100) },
+    { "name": "Eye Contact", "score": (0-100) },
+    { "name": "Composition", "score": (0-100) },
+    { "name": "Swipe Gravity", "score": (0-100) }
+  ],
+  "whatWorks": ["(specific, punchy)", "(specific, punchy)", "(specific, punchy)"],
+  "whatKillsIt": ["(specific, punchy)", "(specific, punchy)", "(specific, punchy)"],
+  "theFix": "(one concrete, specific action — not vague, not gentle)",
+  "predictedImpact": "(e.g. +14 index points — because natural light does what your bedroom ceiling can't)"
+}`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{
+          role: 'user',
+          content: [{
+            type: 'image',
+            source: { type: 'base64', media_type: imageType, data: imageBase64 }
+          }, {
+            type: 'text',
+            text: `Read this photo. Context: ${selectedContext}. Give me the full Magnetism Index analysis. Commit to every call — no hedging, no softening. The photo can take it.`
+          }]
+        }]
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.error) throw new Error(data.error.message);
+
+    const raw = data.content.find(b => b.type === 'text')?.text || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    stopLoading();
+    renderResults(parsed);
+
+  } catch (err) {
+    stopLoading();
+    const errEl = document.getElementById('errorMsg');
+    errEl.style.display = 'block';
+    errEl.textContent = err.message || 'Something went wrong. Check your API key and try again.';
+    readBtn.style.display = '';
+    readBtn.textContent = 'TRY AGAIN';
+  }
+}
+
+function renderResults(d) {
+  // Post verdict
+  const postAns = document.getElementById('postAnswer');
+  postAns.textContent = d.postVerdict || '—';
+  postAns.className = 'post-answer ' + (d.postVerdict || '').toLowerCase();
+
+  // Score + cheeky verdict
+  document.getElementById('scoreNum').textContent = d.magnetismScore ?? '—';
+  document.getElementById('verdictText').textContent = d.verdict || '';
+
+  // The one fix (inline in primary card)
+  document.getElementById('fixText').textContent = d.theFix || '';
+
+  // Metrics (in breakdown)
+  const grid = document.getElementById('metricsGrid');
+  grid.innerHTML = '';
+  (d.metrics || []).forEach(m => {
+    const rawScore = parseFloat(m.score) || 0;
+    const card = document.createElement('div');
+    card.className = 'metric-card';
+    card.innerHTML = `
+      <div class="metric-name">${m.name}</div>
+      <div class="metric-bar-track"><div class="metric-bar-fill" style="width:0%"></div></div>
+      <div class="metric-val">${rawScore}</div>
+    `;
+    grid.appendChild(card);
+    setTimeout(() => {
+      card.querySelector('.metric-bar-fill').style.width = rawScore + '%';
+    }, 100);
+  });
+
+  // What works / kills (in breakdown)
+  const worksList = document.getElementById('worksList');
+  const killsList = document.getElementById('killsList');
+  worksList.innerHTML = '';
+  killsList.innerHTML = '';
+
+  const renderItems = (items, el) => {
+    const arr = Array.isArray(items) ? items : String(items).split('\n').filter(Boolean);
+    arr.slice(0, 3).forEach(txt => {
+      const li = document.createElement('li');
+      li.textContent = txt;
+      el.appendChild(li);
+    });
+  };
+
+  renderItems(d.whatWorks, worksList);
+  renderItems(d.whatKillsIt, killsList);
+
+  // Predicted impact (in breakdown)
+  document.getElementById('impactText').textContent = d.predictedImpact || '';
+
+  // Show results, reset breakdown
+  document.getElementById('resultsWrap').style.display = 'block';
+  document.getElementById('breakdownWrap').style.display = 'none';
+  document.getElementById('explainBtn').textContent = 'Explain it';
+  document.getElementById('explainBtn').classList.remove('open');
+}
+</script>
+</body>
+</html>
