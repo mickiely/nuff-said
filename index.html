@@ -740,12 +740,15 @@ body::before {
 
   <!-- API Key -->
   <div class="api-section">
-    <label class="api-label" for="apiKeyInput">Anthropic API Key</label>
-    <input type="password" id="apiKeyInput" class="api-input" placeholder="sk-ant-...">
+    <label class="api-label" for="apiKeyInput">Anthropic API key (optional)</label>
+    <input type="password" id="apiKeyInput" class="api-input" placeholder="Leave blank for a free sample reading">
   </div>
 
   <!-- CTA -->
   <button class="read-btn" id="readBtn" disabled>READ THE ROOM</button>
+
+  <!-- Sample-mode notice (password-free public demo: no key, no AI call, photo stays in your browser) -->
+  <div class="error-msg" id="sampleNote" style="display:none;border-color:var(--text-dimmer);color:var(--text-dim)">SAMPLE READING · No key entered, so this is a demonstration result. No AI was used and your photo never left this browser. Add your own Anthropic key above for a live read of your photo.</div>
 
   <!-- Error -->
   <div class="error-msg" id="errorMsg"></div>
@@ -898,7 +901,8 @@ function loadFile(file) {
 apiKeyInput.addEventListener('input', updateBtn);
 
 function updateBtn() {
-  readBtn.disabled = !(imageBase64 && apiKeyInput.value.trim().startsWith('sk-'));
+  // Password-free demo: a photo is enough. A key is optional and only switches to a live AI reading.
+  readBtn.disabled = !imageBase64;
 }
 
 readBtn.addEventListener('click', runAnalysis);
@@ -941,9 +945,32 @@ function stopLoading() {
   document.getElementById('loadingWrap').style.display = 'none';
 }
 
+// Isolated sample data for the public demo. Deterministic, labelled, and never sent anywhere.
+const SAMPLE_READING = {
+  postVerdict: 'ALMOST',
+  magnetismScore: 64,
+  verdict: 'Good bones, bad lighting. The camera is doing you dirty.',
+  metrics: [
+    { name: 'Magnetism', score: 64 }, { name: 'Lighting', score: 41 }, { name: 'Eye Contact', score: 78 },
+    { name: 'Composition', score: 55 }, { name: 'Swipe Gravity', score: 62 }
+  ],
+  whatWorks: ['Direct eye contact that actually lands', 'Relaxed expression, no forced grin', 'Clean, uncluttered background'],
+  whatKillsIt: ['Overhead light carving shadows under the eyes', 'Head cropped too tight at the top', 'Phone held below chin height'],
+  theFix: 'Face a window in daylight, hold the phone at eye level and leave a hand-width of space above your head.',
+  predictedImpact: '+14 index points, because natural light does what your bedroom ceiling cannot'
+};
+
 async function runAnalysis() {
   const apiKey = apiKeyInput.value.trim();
+  document.getElementById('sampleNote').style.display = 'none';
   startLoading();
+  if (!apiKey.startsWith('sk-')) {
+    await new Promise(r => setTimeout(r, 1200));
+    stopLoading();
+    renderResults(SAMPLE_READING);
+    document.getElementById('sampleNote').style.display = 'block';
+    return;
+  }
 
   const systemPrompt = `You are the Magnetism Index — a brutally honest mate who also happens to be a photo strategist, dating profile coach, and visual editor. You are not rating attractiveness. You are rating PHOTO READINESS. The photo is always on trial. The person is always redeemable.
 
